@@ -39,7 +39,7 @@ void pop(struct node **localHead)
     free(temp);
 }
 
-void printDatas(struct node **localHead) 
+void printData(struct node **localHead) 
 {
     struct node *curr = *localHead;
     
@@ -67,7 +67,7 @@ int main()
 
     pop(&myQueue);
     
-    printDatas(&myQueue);
+    printData(&myQueue);
 
     freeAll(&myQueue);
 
