@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 const int alpha = 26;
 
@@ -23,9 +22,15 @@ node *make_node(char key)
     return temp;
 }
 
+char to_lower(char x) 
+{
+    if ((int)x >= (int)'a' && (int)x <= (int)'z') return x;
+    return (char)((int)x + ((int)'a' - (int)'A'));
+}
+
 int convert_to_pos(char x) 
 {
-    return (int)tolower(x) - (int)'a';
+    return (int)to_lower(x) - (int)'a';
 }
 
 void insert(node *x, char *str) 
