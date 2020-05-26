@@ -43,6 +43,7 @@ btree *make_btree(int);
 node *make_node(int);
 
 void split(btree**, node**);
+
 int is_keys_exceeded(node*, int);
 
 int get_min_n_keys(btree *tree) 
@@ -60,25 +61,35 @@ void insert(btree**, int);
 node *get_pred(btree *tree, node* x, int key) 
 {
     int idx = find_child_pos_to_key(x, key);
-    
     if (idx < 0) return NULL;
-    return get_pred(tree, x->child[idx], x->keys[x->n_key - 1]);
+
+    node *curr = x->child[idx];
+    while(curr != NULL && curr->child[curr->n_key] != NULL) 
+    {
+        curr = curr->child[curr->n_key];
+    }
+    return curr;
 }
 
 node *get_succ(btree *tree, node* x, int key) 
 {
     int idx = find_child_pos_to_key(x, key) + 1;
-    
     if (idx > tree->order) return NULL;
-    return get_succ(tree, x->child[idx], x->keys[0]);
+
+    node *curr = x->child[idx];
+    while(curr != NULL && curr->child[0] != NULL) 
+    {
+        curr = curr->child[0];
+    }
+    return curr;
 }
 
 node *get_left_sibling(btree *tree, node *x) 
 {
     if (x->parent == NULL) return NULL;
-
+    
     int idx = find_child_pos_to_key(x->parent, x->keys[0]);
-    if (idx < 0) return NULL;
+    if (idx - 1 < 0) return NULL;
     return x->parent->child[idx - 1];
 }
 
@@ -87,9 +98,11 @@ node *get_right_sibling(btree *tree, node *x)
     if (x->parent == NULL) return NULL;
 
     int idx = find_child_pos_to_key(x->parent, x->keys[0]);
-    if (idx > tree->order) return NULL;
+    if (idx + 1 > tree->order) return NULL;
     return x->parent->child[idx + 1];
 }
+
+node *merge(node**, node**);
 
 void del_key_at_index(node**, int);
 void del(btree**, node**, int);
@@ -98,17 +111,45 @@ void del(btree**, int);
 void traverse(node*);
 void traverse(btree*);
 void print_keys(node*);
+
+void level_order(node*);
 void level_order(btree*);
 
+void free_node(node**);
 void free_nodes(node**);
 void free_btree(btree**);
 
 /* Driver - START*/
 int main() 
 {
-    btree *tree = make_btree(4);
+    btree *tree = make_btree(3);
     
+    // char opt;
+    // int num;
+    // while(1) 
+    // {
+    //     scanf("%c", &opt);
+    //     if (opt == 'e') break;
+
+    //     scanf("%d", &num);
+    //     if (opt == 'i') 
+    //     {
+    //         insert(&tree, num);
+    //         printf("Insert %d:\n", num);
+    //     } else if (opt == 'd') 
+    //     {
+    //         del(&tree, num);
+    //         printf("Delete %d:\n", num);
+    //     }
+
+    //     level_order(tree); printf("\n");
+
+    //     printf("Traverse:");
+    //     traverse(tree); printf("\n");
+    // }
+
     int input[] = {80, 70, 60, 100, 90, 50, 40, 20, 10, 30};
+    // int input[] = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
     int i_size = sizeof(input) / sizeof(input[0]);
     for (int i = 0; i < i_size; i++) 
     {
@@ -116,9 +157,14 @@ int main()
         printf("Insert %d:\n", input[i]);
         level_order(tree);
         printf("\n");
+
+        printf("Traverse:");
+        traverse(tree); printf("\n");
     }
 
-    int rm[] = {20, 70};
+    // // int rm[] = {10, 40, 60, 20, 30, 80, 100, 50, 70, 90};
+    int rm[] = {90, 50, 70, 40, 10, 30, 80, 60, 100, 20};
+    // // int rm[] = {10, 20, 30, 40, 50, 70, 90, 60, 100, 80};
     int rm_size = sizeof(rm) / sizeof(rm[0]);
     for (int i = 0; i < rm_size; i++) 
     {
@@ -126,11 +172,10 @@ int main()
         printf("Delete %d:\n", rm[i]);
         level_order(tree);
         printf("\n");
-    }
 
-    printf("Traverse:");
-    traverse(tree);
-    printf("\n");
+        printf("Traverse:");
+        traverse(tree); printf("\n");
+    }
 
     free_btree(&tree);
 
@@ -248,7 +293,13 @@ void split(btree **tree, node **x)
         (*x)->n_key -= 1;
         (*x)->child[i] = NULL;
     }
-    
+
+    // Set is not leaf child if the splitted node is not leaf
+    if (!(*x)->is_leaf) 
+    {
+        (*x)->is_leaf = 0;
+        new_child->is_leaf = 0;
+    }
 
     // If parent is null, then it is the root, make a new root
     if ((*x)->parent == NULL) 
@@ -360,9 +411,42 @@ void insert(btree **tree, int key)
     insert(tree, &(*tree)->root, key);
 }
 
-void del_key_at_index(node **x, int start) 
+node *merge(node **a, node **b) 
 {
-    for (int i = start + 1; i < (*x)->n_key; i++) (*x)->keys[i - 1] = (*x)->keys[i];
+    if (*a == NULL) return *b;
+    else if (*b == NULL) return *a;
+
+    int start = (*a)->n_key;
+    int res = (*a)->n_key + (*b)->n_key;
+
+    node *child = NULL;
+
+    // Merge the keys and child
+    for (int i = start; i <= res; i++) 
+    {
+        if (i != res) 
+        {
+            (*a)->keys[i] = (*b)->keys[i - start];
+            (*a)->n_key += 1;
+        }
+
+        child = (*b)->child[i - start];
+        (*a)->child[i + 1] = child;
+        if (child != NULL) child->parent = *a;
+    }
+
+    // Free the the second node
+    free_node(b);
+
+    return *a;
+}
+
+void del_key_at_index(node **x, int index) 
+{
+    for (int i = index + 1; i < (*x)->n_key; i++)
+    {
+        (*x)->keys[i - 1] = (*x)->keys[i];
+    }
     (*x)->n_key -= 1;
 }
 
@@ -371,63 +455,164 @@ void del(btree **tree, node **x, int key)
     if (*x == NULL) return;
 
     int idx = find_child_pos_to_key(*x, key);
-    
+
     if ((*x)->keys[idx] == key) 
     {
+        // If x is leaf
         if ((*x)->is_leaf) 
         {
             if (*x == (*tree)->root || (*x)->n_key > get_min_n_keys(*tree)) 
             {
                 del_key_at_index(x, idx);
+                if ((*x)->n_key <= 0) free_node(x);
             } else 
             {
-                int p_idx, s_idx;
+                int p_idx, s_idx, flag = 0;
+                node *nd = *x;
 
-                node *s_left = get_left_sibling(*tree, *x);
-                if (s_left != NULL) 
+                while (1) 
                 {
-                    if (s_left->n_key > get_min_n_keys(*tree)) 
-                    {
-                        // Delete and insert the parent key down
-                        p_idx = find_child_pos_to_key((*x)->parent, key) - 1;
-                        del_key_at_index(x, idx);
-                        insert_key(x, (*x)->parent->keys[p_idx], 0);
-                        del_key_at_index(&(*x)->parent, p_idx);
+                    node *s_left = get_left_sibling(*tree, nd);
+                    node *s_right = get_right_sibling(*tree, nd);
 
-                        // Delete and insert left sibling pred key up
-                        s_idx = s_left->n_key - 1;
-                        insert_key(&(*x)->parent, s_left->keys[s_idx], 0);
-                        del_key_at_index(&s_left, s_idx);
+                    int to_merge = 0;
+                    if (((s_left == NULL) || s_left->n_key <= get_min_n_keys(*tree)) &&
+                        ((s_right == NULL) || s_right->n_key <= get_min_n_keys(*tree))) 
+                    {
+                        to_merge = 1;
+                    }
+                    
+                    del_key_at_index(&nd, idx);
+                
+                    if (!to_merge) 
+                    {
+                        if (s_left != NULL && s_left->n_key > get_min_n_keys(*tree)) 
+                        {
+                            // Delete and insert the parent key down
+                            p_idx = find_child_pos_to_key(nd->parent, key) - 1;
+                            insert_key(&nd, nd->parent->keys[p_idx], 0);
+                            del_key_at_index(&nd->parent, p_idx);
+
+                            // Delete and insert left sibling pred key up
+                            s_idx = s_left->n_key - 1;
+                            insert_key(&nd->parent, s_left->keys[s_idx], 0);
+                            del_key_at_index(&s_left, s_idx);
+                            
+                            // Shift child to right
+                            int len = nd->n_key;
+                            for (int i = len; i >= 0; i--) 
+                            {
+                                if (i == 0) 
+                                {
+                                    nd->child[0] = NULL;
+                                    continue;
+                                }
+                                nd->child[i] = nd->child[i - 1];
+                            }
+
+                            int s_len = s_left->n_key + 1;
+                            // Link the node to new parent
+                            nd->child[0] = s_left->child[s_len];
+                            if (nd->child[0] != NULL) nd->child[0]->parent = nd;
+                            s_left->child[s_len] = NULL;
+                        }
+                        else if (s_right != NULL && s_right->n_key > get_min_n_keys(*tree)) 
+                        {
+                            // Delete and insert the parent key down
+                            p_idx = find_child_pos_to_key(nd->parent, key);
+                            insert_key(&nd, nd->parent->keys[p_idx], 0);
+                            del_key_at_index(&nd->parent, p_idx);
+
+                            // Delete and insert right sibling succ key up
+                            s_idx = 0;
+                            insert_key(&nd->parent, s_right->keys[s_idx], 0);
+                            del_key_at_index(&s_right, s_idx);
+
+                            // Shift child to left
+                            int len = nd->n_key;
+                            // Link the node to new parent
+                            nd->child[len] = s_right->child[0];
+                            if (nd->child[len] != NULL) nd->child[len]->parent = nd;
+
+                            int s_len = s_right->n_key + 1;
+                            for (int i = 0; i <= s_len; i++) 
+                            {
+                                if (i == s_len) 
+                                {
+                                    s_right->child[s_len] = NULL;
+                                    continue;
+                                }
+                                s_right->child[i] = s_right->child[i + 1];
+                            }
+                        }
 
                         return;
-                    }
-                }
-
-                node *s_right = get_right_sibling(*tree, *x);
-                if (s_right != NULL) 
-                {
-                    if (s_right->n_key > get_min_n_keys(*tree)) 
+                    } 
+                    
+                    // Merge
+                    else 
                     {
-                        // Delete and insert the parent key down
-                        p_idx = find_child_pos_to_key((*x)->parent, key);
-                        del_key_at_index(x, idx);
-                        insert_key(x, (*x)->parent->keys[p_idx], 0);
-                        del_key_at_index(&(*x)->parent, p_idx);
+                        node *merged = NULL;
+                        node *parent = nd->parent;
 
-                        // Delete and insert right sibling succ key up
-                        s_idx = 0;
-                        insert_key(&(*x)->parent, s_right->keys[s_idx], 0);
-                        del_key_at_index(&s_right, s_idx);
+                        p_idx = find_child_pos_to_key(parent, key) + ((s_left != NULL) ? -1 : 0);
+                        
+                        int p_key = parent->keys[p_idx];
+                        del_key_at_index(&parent, p_idx);
 
-                        return;
+                        if (s_left != NULL) merged = merge(&s_left, &nd);
+                        else merged = merge(&nd, &s_right);
+                        
+                        // Merge parent child
+                        for (int i = p_idx + 1; i <= parent->n_key + 1; i++) 
+                        {
+                            if (i == parent->n_key + 1) parent->child[i] = NULL;
+                            else parent->child[i] = parent->child[i + 1];
+                        }
+                        
+                        insert_key(&merged, p_key, 0);
+
+                        // If parent is empty
+                        if (parent == NULL || parent->n_key <= 0) 
+                        {
+                            // Set the new root
+                            if (parent == (*tree)->root) 
+                            {
+                                free_node(&parent);
+                                (*tree)->root = merged;
+                                return;
+                            } 
+                            
+                            // If not root, iterate to find any violation
+                            else 
+                            {
+                                insert_key(&parent, p_key, 0);
+                                nd = parent;
+                            }
+                        } else return;
                     }
                 }
-
-                // TODO: Merge
             }
-        } else
+        } 
+        // If x is not leaf
+        else
         {
-            
+            node *pred = get_pred(*tree, *x, key);
+            node *succ = get_succ(*tree, *x, key);
+            int idx = find_child_pos_to_key(*x, key);
+            int r_key;
+
+            if (pred != NULL) 
+            {
+                r_key = pred->keys[pred->n_key - 1];
+                (*x)->keys[idx] = r_key;
+                del(tree, &pred, r_key);
+            } else if (succ != NULL) 
+            {
+                r_key = succ->keys[0];
+                (*x)->keys[idx] = r_key;
+                del(tree, &succ, r_key);
+            }
         }
     } else 
     {
@@ -456,27 +641,40 @@ void traverse(node *x)
     traverse(x->child[idx]);
 }
 
-void traverse(btree *tree) { if (tree != NULL) traverse(tree->root); }
+void traverse(btree *tree) 
+{ 
+    if (tree == NULL || tree->root == NULL) 
+    {
+        printf("No nodes in tree.");
+    } else traverse(tree->root);
+    printf("\n");
+}
 
 void print_keys(node *x) 
 {
-    if (x == NULL) return;
-
-    int len = x->n_key;
-    for (int i = 0; i < len; i++) 
+    if (x == NULL || x->n_key <= 0) 
     {
-        printf(" %d", x->keys[i]);
+        printf("No keys in node.\n");
+        return;
     }
+
+    printf("[%d]", x->is_leaf);
+    int len = x->n_key;
+    for (int i = 0; i < len; i++) printf(" %d", x->keys[i]);
 }
 
-void level_order(btree *tree) 
+void level_order(node *x) 
 {
-    if (tree == NULL || tree->root == NULL) return;
+    if (x == NULL) 
+    {
+        printf("No nodes in tree.\n");
+        return;
+    }
 
     qnode *head = NULL, *tail = NULL;
     int size = 0, level = 1;
 
-    push(&head, &tail, &tree->root, &size);
+    push(&head, &tail, &x, &size);
 
     while (head != NULL)
     {
@@ -503,13 +701,16 @@ void level_order(btree *tree)
     pop_all(&head, &tail, &size);
 }
 
-void free_nodes(node **x) 
+void level_order(btree *tree) 
+{
+    if (tree == NULL || tree->root == NULL) printf("No nodes in tree.\n");
+    else level_order(tree->root);
+}
+
+void free_node(node** x) 
 {
     if (*x == NULL) return;
-
-    int idx = (*x)->n_key;
-    for (idx; idx >= 0; idx--) free_nodes(&(*x)->child[idx]);
-
+    
     free((*x)->keys);
     (*x)->keys = NULL;
 
@@ -518,6 +719,16 @@ void free_nodes(node **x)
 
     free(*x);
     *x = NULL;
+}
+
+void free_nodes(node **x) 
+{
+    if (*x == NULL) return;
+
+    int idx = (*x)->n_key;
+    for (idx; idx >= 0; idx--) free_nodes(&(*x)->child[idx]);
+
+    free_node(x);
 }
 
 void free_btree(btree **tree) 
