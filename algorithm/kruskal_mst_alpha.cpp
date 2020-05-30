@@ -1,3 +1,4 @@
+ 
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -80,7 +81,7 @@ int kruskal(edge edges[], int V, int E)
             ans += edges[i].w;
 
             // Print MST edges
-            printf("%c -- %c (weight: %d)\n", 
+            printf("%c <--> %c (weight: %d)\n", 
                 idx_to_alpha(edges[i].u),
                 idx_to_alpha(edges[i].v), 
                 edges[i].w);
@@ -95,24 +96,74 @@ int kruskal(edge edges[], int V, int E)
 int main() 
 {
     int V, E;
-    scanf("%d %d", &V, &E); getchar();
+    V = 8;
+    E = 12;
     
     edge edges[E];
 
     char u, v;
     int w, ans;
+
+    // Inputing
+    char input_v1[] = 
+    {
+        'A',
+        'A',
+        'A',
+        'H',
+        'H',
+        'H',
+        'G',
+        'G',
+        'G',
+        'D',
+        'B',
+        'E'
+    };
+    char input_v2[] = 
+    {
+        'H',
+        'G',
+        'D',
+        'B',
+        'G',
+        'F',
+        'F',
+        'E',
+        'C',
+        'E',
+        'C',
+        'F'
+    };
+    int input_w[] 
+    {
+        8,
+        5,
+        12,
+        12,
+        3,
+        17,
+        25,
+        7,
+        21,
+        19,
+        22,
+        10
+    };
+
     for (int i = 0; i < E; i++)
     {
-        scanf("%c %c %d", &u, &v, &w); getchar();
+        u = input_v1[i];
+        v = input_v2[i];
+        w = input_w[i];
 
         edges[i].u = alpha_to_idx(u);
         edges[i].v = alpha_to_idx(v);
         edges[i].w = w;
     }
-    printf("\n");
 
     ans = kruskal(edges, V, E);
-    printf("MST: %d\n", ans);
+    printf("Total minimum weight in MST: %d\n", ans);
 
     return 0;
 }
