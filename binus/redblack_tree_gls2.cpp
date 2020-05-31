@@ -79,6 +79,9 @@ int main()
 {
     rbt *tree = make_rbt();
 
+    printf("Red Black Tree Simulation\n");
+    printf("=========================\n\n");
+	
     int input[] = {26, 10, 55, 1, 25, 30, 66, 44, 20, 73, 4, 99, 19};
     int i_size = sizeof(input) / sizeof(input[0]);
     for (int i = 0; i < i_size; i++) 
