@@ -139,8 +139,8 @@ int main()
 {
     btree *tree = make_btree(3);
 
-	   printf("2-3 Tree (B-Tree Order 3) Simulation\n");
-	   printf("====================================\n\n");
+	printf("2-3 Tree (B-Tree Order 3) Simulation\n");
+	printf("====================================\n\n");
 	
     int input[] = {14, 20, 3, 16, 70, 56, 89, 15, 45, 80, 60};
     int i_size = sizeof(input) / sizeof(input[0]);
