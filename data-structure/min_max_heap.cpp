@@ -4,6 +4,7 @@
 
 #define ll long long int
 
+const int MAX = 1000000;
 const int STRLN = 10;
 
 typedef struct node 
@@ -15,7 +16,7 @@ typedef struct node
 
 typedef struct heap 
 {
-    node data[100];
+    node data[MAX];
     ll cap;
     ll size;
 } heap;
@@ -216,6 +217,9 @@ void down_heap(heap **hp, ll idx, int isMin)
 
 void insert(heap **hp, ll key, const char *str) 
 {
+    // Reach cap
+    if ((*hp)->size >= (*hp)->cap) return;
+
     // Increase the size
     (*hp)->size += 1;
 
@@ -261,8 +265,6 @@ void del(heap **hp, ll key)
 
     // Decrease the size
     (*hp)->size -= 1;
-    
-    // printf("%lld %lld %lld\n", idx, (*hp)->data[idx].key, (*hp)->data[(*hp)->size].key);
 
     // Swap with last element
     swap(&(*hp)->data[idx], &(*hp)->data[(*hp)->size] + 1);
