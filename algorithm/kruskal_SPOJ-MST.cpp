@@ -1,5 +1,5 @@
 /*
- * MST Prim's Algorithm
+ * MST Kruskal Algorithm
  * Using 1 based Index, SPOJ Test using bubble reach 80 points
  * Better use Kruskal
 */
