@@ -1,3 +1,9 @@
+/*
+ * MST Prim's Algorithm
+ * Using 1 based Index, SPOJ Test using bubble reach 80 points
+ * Better use Kruskal
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -55,9 +61,9 @@ ll kruskal()
 	qsort(edges, E, sizeof(edges[0]), w_comp);
 	
 	// Sort
-//	for (int i = 1; i <= E; i++) 
+//	for (int i = 0; i < E; i++) 
 //	{
-//		for (int j = i + 1; j <= E; j++) 
+//		for (int j = i + 1; j < E; j++) 
 //		{
 //			if (edges[j].w < edges[i].w) 
 //			{
