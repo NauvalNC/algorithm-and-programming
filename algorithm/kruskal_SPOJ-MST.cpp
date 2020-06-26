@@ -99,8 +99,11 @@ int main()
 	for (ll i = 0; i < E; i++) 
 	{
 		scanf("%lld %lld %lld", &u, &v, &w);
+		
+		// SPOJ using 1 index, make it 0 index
 		edges[i].u = u - 1;
 		edges[i].v = v - 1;
+		
 		edges[i].w = w;
 	}
 	
