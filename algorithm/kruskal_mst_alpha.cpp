@@ -1,4 +1,10 @@
- 
+/*
+ * MST Kruskal Algorithm
+ * Using 0 based Index
+ * Alphabet 'A' as 0 index
+ * Better use Kruskal
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -57,8 +63,32 @@ int w_comp(const void *a, const void *b)
 // MST Kruskal Algorithm
 int kruskal(edge edges[], int V, int E) 
 {
-    qsort(edges, E, sizeof(edges[0]), w_comp);
-
+//    qsort(edges, E, sizeof(edges[0]), w_comp);
+	
+	// Bubble Sort
+	for (int i = 0; i < E; i++) 
+	{
+		for (int j = i + 1; j < E; j++) 
+		{
+			if (edges[i].w > edges[j].w) 
+			{
+				edge temp = edges[i];
+				edges[i] = edges[j];
+				edges[j] = temp;
+			}
+		}
+	}
+	
+	printf("Sorted Edges:\n");
+	for (int i = 0; i < E; i++) 
+	{
+		printf("%c <--> %c (weight: %d)\n", 
+                idx_to_alpha(edges[i].u),
+                idx_to_alpha(edges[i].v), 
+                edges[i].w);
+	}
+	printf("\n");
+	
     subset subs[V];
     for (int i = 0; i < V; i++) 
     {
@@ -105,57 +135,27 @@ int main()
     int w, ans;
 
     // Inputing
-    char input_v1[] = 
-    {
-        'A',
-        'A',
-        'A',
-        'H',
-        'H',
-        'H',
-        'G',
-        'G',
-        'G',
-        'D',
-        'B',
-        'E'
-    };
-    char input_v2[] = 
-    {
-        'H',
-        'G',
-        'D',
-        'B',
-        'G',
-        'F',
-        'F',
-        'E',
-        'C',
-        'E',
-        'C',
-        'F'
-    };
-    int input_w[] 
-    {
-        8,
-        5,
-        12,
-        12,
-        3,
-        17,
-        25,
-        7,
-        21,
-        19,
-        22,
-        10
-    };
+    edge input[E] = 
+	{
+		{'A', 'H', 8},
+		{'A', 'D', 12},
+		{'A', 'G', 5},
+		{'H', 'G', 3},
+		{'G', 'C', 21},
+		{'D', 'E', 19},
+		{'G', 'E', 7},
+		{'H', 'B', 12},
+		{'B', 'C', 22},
+		{'G', 'F', 25},
+		{'H', 'E', 17},
+		{'E', 'F', 10}
+	};
 
     for (int i = 0; i < E; i++)
     {
-        u = input_v1[i];
-        v = input_v2[i];
-        w = input_w[i];
+        u = input[i].u;
+        v = input[i].v;
+        w = input[i].w;
 
         edges[i].u = alpha_to_idx(u);
         edges[i].v = alpha_to_idx(v);
