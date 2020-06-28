@@ -18,6 +18,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// Change to 0 if using pred to delete, or 1 to use successor to delete
+// Default is predecessor
+int usingPred = 1;
+
 enum color { BLACK, RED };
 
 typedef struct node 
@@ -276,9 +280,18 @@ node *get_replacement(rbt *tree, node *x)
     if (x->left == NULL && x->right != NULL) return x->right;
     if (x->left != NULL && x->right == NULL) return x->left;
     
-    node *pred = x->left;
-    while(pred != NULL && pred->right != NULL) pred = pred->right;
-    return pred;
+    // Return replacement by predecessor or successor
+    if (usingPred) 
+	{
+		node *pred = x->left;
+    	while(pred != NULL && pred->right != NULL) pred = pred->right;
+    	return pred;
+	} else 
+	{
+		node *succ = x->right;
+    	while(succ != NULL && succ->left != NULL) succ = succ->left;
+    	return succ;
+	}
 }
 
 void fix_redred(rbt **tree, node **x) 
