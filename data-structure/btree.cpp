@@ -1,3 +1,18 @@
+/*
+ * Name: Nauval Muhammad Firdaus
+ * NIM: 2301906331
+ * Class: LD01 (Kelas Kecil) / CA01 (Kelas Besar)
+ * 
+ * =======================
+ * ATTENTION
+ * =======================
+ * This B-Tree is using predecessor for deleting node with two children.
+ * The result may differ with successor version.
+ * 
+ * This predecessor method satisfy the simulation on 
+ * https://www.cs.usfca.edu/~galles/visualization/BTree.html
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 
